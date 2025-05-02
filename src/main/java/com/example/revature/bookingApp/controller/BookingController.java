@@ -5,8 +5,10 @@ import com.example.revature.bookingApp.entity.Booking;
 import com.example.revature.bookingApp.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -14,30 +16,37 @@ import java.util.Map;
 @RequestMapping("/api/booking")
 public class BookingController {
 
+
     @Autowired
     private BookingService bookingService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public List<Booking>getAllBookings() {
     return bookingService.getAllBookings();
     }
 
+    //PROVIDES WITH METHOD LEVEL SECURITY
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Booking createBooking(@RequestBody Booking booking) {
         return bookingService.createBooking(booking);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public Booking getBookingById(@PathVariable Long id) {
     return  bookingService.getBookingByI(id)
             .orElseThrow(()-> new RuntimeException("Booking not found"));
     }
 
-    @DeleteMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
     public void deleteBooking(@PathVariable Long id) {
         bookingService.deleteBookingById(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public Booking updateBooking(@PathVariable Long id, @RequestBody Booking bookingDetails) {
     Booking booking = bookingService.getBookingByI(id)
@@ -52,6 +61,7 @@ public class BookingController {
     return bookingService.createBooking(booking);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PatchMapping("/{id}")
     public ResponseEntity<Booking> partialUpdateBooking(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Booking booking = bookingService.getBookingByI(id)
@@ -72,7 +82,7 @@ public class BookingController {
                     booking.setStatus((String) value);
                     break;
                 case "price":
-                    booking.setPrice((float) value);
+                    booking.setPrice((Double) value);
             }
         });
         Booking updateBooking =bookingService.createBooking(booking);

@@ -22,5 +22,5 @@ public class Booking {
 
     private String status;
 
-    private float price;
+    private double price;
 }
